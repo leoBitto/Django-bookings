@@ -1,4 +1,4 @@
-# File: yourapp/utils.py
+# File: bookings/utils.py
 
 import calendar
 from datetime import datetime, timedelta
