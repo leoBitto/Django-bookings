@@ -1,0 +1,170 @@
+{% extends 'website/base.html' %}
+{% block content %}
+
+  <div class="container mt-4">
+    <!-- Navigazione ai giorni precedente e successivo -->
+    <div class="m-2 d-flex flex-row justify-content-between">
+        <a href="{% url 'bookings:calendar_day' year=prev_day.year month=prev_day.month day=prev_day.day %}" class="p-2 btn btn-primary"><i class="fas fa-chevron-left"></i></a>
+        <h2 class="m-2">{{ selected_day|date:"l, d E Y" }}</h2>
+        <a href="{% url 'bookings:calendar_day' year=next_day.year month=next_day.month day=next_day.day %}" class="p-2 btn btn-primary"><i class="fas fa-chevron-right"></i></a>
+    </div>
+
+    <!-- Lista delle prenotazioni per il giorno selezionato -->
+    <ul class="list-group mb-4">
+      {% for booking in bookings %}
+      <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center flex-row">
+            <div>
+                <span>{{ booking.name }} </span>
+                <span> alle: {{ booking.hour|time:"H.i" }} </span>
+                <span>in {{ booking.num_of_people }} pers.</span>
+                <p>Tel.: {{ booking.phone_number }} </p>
+                <p>Note: {{ booking.note }} </p>
+            </div>
+            <div class="btn-group">
+                <!-- Pulsante di Modifica -->
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ booking.pk }}">
+                    <i class="fas fa-edit"></i> Modifica
+                </button>
+                <!-- Pulsante di Cancellazione -->
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ booking.pk }}">
+                    <i class="fas fa-trash"></i> Cancella
+                </button>
+            </div>
+        </div>
+    </li>
+    
+    
+
+          <!-- Modal di Modifica -->
+          <div class="modal fade" id="updateModal{{ booking.pk }}" tabindex="-1" aria-labelledby="updateModalLabel{{ booking.pk }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <!-- Contenuto del modal -->
+                <div class="modal-header">
+                  <h5 class="modal-title" id="updateModalLabel{{ booking.pk }}">Modifica Prenotazione</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- Includi il form popolato -->
+                  <form method="post" action="{% url 'bookings:booking_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                      <label for="{{ booking.form.name.id_for_label }}" class="form-label">Nome</label>
+                      {{ booking.form.name }}
+                    </div>
+                    <div class="mb-3">
+                      <label for="{{ booking.form.date.id_for_label }}" class="form-label">Data</label>
+                      {{ booking.form.date }}
+                    </div>
+                    <div class="mb-3">
+                      <label for="{{ booking.form.hour.id_for_label }}" class="form-label">Ora</label>
+                      {{ booking.form.hour }}
+                    </div>
+                    <div class="mb-3">
+                      <label for="{{ booking.form.num_of_people.id_for_label }}" class="form-label">Numero di Persone</label>
+                      {{ booking.form.num_of_people }}
+                      {{ booking.form.num_of_people.errors }}
+                    </div>
+                    <div class="mb-3">
+                      <label for="{{ booking.form.phone_number.id_for_label }}" class="form-label">Numero di Telefono</label>
+                      {{ booking.form.phone_number }}
+                      {{ booking.form.phone_number.errors }}
+                    </div>
+                    <div class="mb-3">
+                      <label for="{{ booking.form.note.id_for_label }}" class="form-label">Note</label>
+                      {{ booking.form.note }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salva</button>
+                  </form>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal di Cancellazione -->
+          <div class="modal fade" id="deleteModal{{ booking.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ booking.pk }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <!-- Contenuto del modal -->
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteModalLabel{{ booking.pk }}">Conferma Cancellazione</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p>Sei sicuro di voler cancellare la prenotazione?</p>
+                  <!-- Aggiungi il form di conferma -->
+                  <form method="post" action="{% url 'bookings:booking_delete' pk=booking.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Conferma Cancellazione</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+      {% endfor %}
+    </ul>
+
+
+      
+      
+    
+
+    <!-- Form per aggiungere una nuova prenotazione -->
+    <div class="d-flex justify-content-center">
+      
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="fas fa-plus"></i> Aggiungi Prenotazione
+      </button>
+
+      <!-- Modal di Aggiunta -->
+      <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Contenuto del modal -->
+            <div class="modal-header">
+              <h5 class="modal-title" id="addModalLabel">Aggiungi Prenotazione</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Includi il form -->
+              <form method="post" action="{% url 'bookings:booking_create' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="{{ form.name.id_for_label }}" class="form-label">Nome</label>
+                  {{ form.name }}
+                </div>
+                <div class="mb-3">
+                  <label for="{{ form.date.id_for_label }}" class="form-label">Data</label>
+                  {{ form.date }}
+                </div>
+                <div class="mb-3">
+                  <label for="{{ form.hour.id_for_label }}" class="form-label">Ora</label>
+                  {{ form.hour }}
+                </div>
+                <div class="mb-3">
+                  <label for="{{ form.num_of_people.id_for_label }}" class="form-label">Numero di Persone</label>
+                  {{ form.num_of_people }}
+                  {{ form.num_of_people.errors }}
+                </div>
+                <div class="mb-3">
+                  <label for="{{ form.phone_number.id_for_label }}" class="form-label">Numero di Telefono</label>
+                  {{ form.phone_number }}
+                  {{ form.phone_number.errors }}
+                </div>
+                <div class="mb-3">
+                  <label for="{{ form.note.id_for_label }}" class="form-label">Note</label>
+                  {{ form.note }}
+                </div>
+                <button type="submit" class="btn btn-primary">Salva</button>
+              </form>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -21,12 +21,23 @@ def booking_detail(request, pk):
 
 
 def booking_create(request):
+    today = datetime.today()
+    year = today.year
+    month = today.month
+    day = today.day
+
     if request.method == 'POST':
         form = BookingForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Prenotazione creata con successo!")
-            return redirect('bookings:calendar_month')
+                       
+            year = form.cleaned_data['date'].year
+            month = form.cleaned_data['date'].month
+            day = form.cleaned_data['date'].day
+
+            # Passa i parametri come argomenti nella URL di destinazione
+            return redirect('bookings:calendar_day', year=year, month=month, day=day)
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -34,17 +45,27 @@ def booking_create(request):
     else:
         form = BookingForm()
 
-    return redirect('bookings:calendar_month')
+    return redirect('bookings:calendar_day', year=year, month=month, day=day)
 
 
 def booking_update(request, pk):
+    today = datetime.today()
+    year = today.year
+    month = today.month
+    day = today.day
+
     booking = get_object_or_404(Booking, pk=pk)
     if request.method == 'POST':
         form = BookingForm(request.POST, instance=booking)
         if form.is_valid():
             form.save()
             messages.success(request, "Prenotazione aggiornata con successo!")
-            return redirect('calendar_month')
+
+            year = form.cleaned_data['date'].year
+            month = form.cleaned_data['date'].month
+            day = form.cleaned_data['date'].day
+
+            return redirect('bookings:calendar_day', year=year, month=month, day=day)
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -52,31 +73,51 @@ def booking_update(request, pk):
     else:
         form = BookingForm(instance=booking)
 
-    return redirect('bookings:calendar_month')
+    return redirect('bookings:calendar_day', year=year, month=month, day=day)
 
 @require_POST
 def booking_delete(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
+
+    year = booking.date.year
+    month = booking.date.month
+    day = booking.date.day
+
     booking.delete()
-    return redirect('bookings:calendar_month')
+    return redirect('bookings:calendar_day', year=year, month=month, day=day)
 
 
 def calendar_day_view(request, year, month, day):
     selected_day = datetime(year, month, day)
-    bookings = Booking.objects.filter(date=selected_day)
+    bookings = Booking.objects.filter(
+        date__year=selected_day.year,
+        date__month=selected_day.month, 
+        date__day=selected_day.day
+        )
+    
+    booking_list = []
+    for booking in bookings:
+        form = BookingForm(instance=booking)  # Crea il form per l'istanza corrente
+        booking_dict = {
+            'pk': booking.pk,
+            'name': booking.name,
+            'date': booking.date,
+            'hour': booking.hour,
+            'num_of_people': booking.num_of_people,
+            'phone_number': booking.phone_number,
+            'note': booking.note,
+            'form': form,  # Aggiungi il form all'istanza
+        }
+        booking_list.append(booking_dict)
 
-    if request.method == 'POST' and 'view_details' in request.POST:
-        # Se il form nel modal è inviato
-        form = BookingForm(request.POST, instance=bookings.first())
-        if form.is_valid():
-            form.save()
+    form = BookingForm()
 
     context = {
         'selected_day': selected_day,
-        'bookings': bookings,
-        'view_details': True,
+        'bookings': booking_list,
         'prev_day': selected_day - timedelta(days=1),
         'next_day': selected_day + timedelta(days=1),
+        'form':form,
     }
 
     return render(request, 'booking_day_calendar.html', context)
