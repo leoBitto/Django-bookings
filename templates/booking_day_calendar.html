@@ -8,7 +8,11 @@
         <h2 class="m-2">{{ selected_day|date:"l, d E Y" }}</h2>
         <a href="{% url 'bookings:calendar_day' year=next_day.year month=next_day.month day=next_day.day %}" class="p-2 btn btn-primary"><i class="fas fa-chevron-right"></i></a>
     </div>
-
+    <form id="dateForm" action="#" class="my-2 d-flex flex-row justify-content-center" method="post">
+        {% csrf_token %}
+        <input class="flex-grow-1" type="date" name="date" id="dateInput">
+        <button class="btn btn-success" type="button" onclick="submitForm()"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </form>
     <!-- Lista delle prenotazioni per il giorno selezionato -->
     <ul class="list-group mb-4">
       {% for booking in bookings %}
@@ -28,7 +32,7 @@
                 </button>
                 <!-- Pulsante di Cancellazione -->
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ booking.pk }}">
-                    <i class="fas fa-trash"></i> Cancella
+                    <i class="fas fa-trash"></i> 
                 </button>
             </div>
         </div>
@@ -47,7 +51,7 @@
                 </div>
                 <div class="modal-body">
                   <!-- Includi il form popolato -->
-                  <form method="post" action="{% url 'bookings:booking_create' %}">
+                  <form method="post" action="{% url 'bookings:booking_update' booking.pk %}">
                     {% csrf_token %}
                     <div class="mb-3">
                       <label for="{{ booking.form.name.id_for_label }}" class="form-label">Nome</label>
@@ -107,15 +111,10 @@
       {% endfor %}
     </ul>
 
-
-      
-      
-    
-
     <!-- Form per aggiungere una nuova prenotazione -->
     <div class="d-flex justify-content-center">
       
-      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
         <i class="fas fa-plus"></i> Aggiungi Prenotazione
       </button>
 
@@ -167,4 +166,28 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function submitForm() {
+        // Ottieni il valore della data dal campo di input
+        var dateInput = document.getElementById('dateInput').value;
+        // Estrai l'anno, il mese e il giorno dalla data
+        var parts = dateInput.split('-');
+        var year = parts[0];
+        var month = parts[1];
+        var day = parts[2];
+        // Modifica dinamicamente l'URL aggiungendo la data come parametro
+        var baseUrl = "{% url 'bookings:calendar_day' year=";
+        var newUrl = baseUrl + year + " month=" + month + " day=" + day + " %}";
+    
+        console.log(newUrl)
+        // Imposta l'attributo action del modulo con il nuovo URL
+        document.getElementById('dateForm').action = newUrl;
+        console.log(document.getElementById('dateForm').action)
+        // Invia il modulo al backend
+        //document.getElementById('dateForm').submit();
+    }
+</script>
+
+
 {% endblock %}
