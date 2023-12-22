@@ -1,7 +1,6 @@
-# File: bookings/utils.py
-
-import calendar
 from datetime import datetime, timedelta
+from django.urls import reverse
+import calendar
 
 class Calendar:
     def __init__(self, year, month):
@@ -9,7 +8,7 @@ class Calendar:
         self.month = month
 
     def formatmonth(self, withyear=True):
-        cal = calendar.monthcalendar(self.year, self.month)
+        cal = self._get_month_calendar()
         month_name = calendar.month_name[self.month]
         if withyear:
             return f"{month_name} {self.year}\n" + self._formatmonth(cal)
@@ -17,24 +16,35 @@ class Calendar:
             return f"{month_name}\n" + self._formatmonth(cal)
 
     def formatweek(self, start_date, end_date):
-        cal = calendar.monthcalendar(self.year, self.month)
-        week_str = ""
-        for week in cal:
-            for day in week:
-                if start_date <= datetime(self.year, self.month, day) <= end_date:
-                    week_str += f"{day:2} "
-                else:
-                    week_str += "   "
-            week_str += "\n"
+        week_str = "<div class='row'>"
+        for day in range(7):
+            current_day = start_date + timedelta(days=day)
+            day_url = reverse('day_view', args=[current_day.year, current_day.month, current_day.day])
+            week_str += f"<div class='col'><a href='{day_url}'>{current_day.day}</a></div>"
+        week_str += "</div>"
         return week_str
 
-    def _formatmonth(self, cal):
-        month_str = ""
+    def _get_month_calendar(self):
+        cal = calendar.monthcalendar(self.year, self.month)
+        month_days = []
         for week in cal:
+            week_days = []
             for day in week:
-                if day == 0:
-                    month_str += "   "
+                if day != 0:
+                    current_day = datetime(self.year, self.month, day)
+                    week_days.append(current_day)
+            month_days.append(week_days)
+        return month_days
+
+    def _formatmonth(self, cal):
+        month_str = "<div class='container'>"
+        for week in cal:
+            month_str += "<div class='row'>"
+            for day in week:
+                if day:
+                    month_str += f"<div class='col'><a href='{day.url}'>{day.day:2}</a></div>"
                 else:
-                    month_str += f"{day:2} "
-            month_str += "\n"
+                    month_str += "<div class='col'></div>"
+            month_str += "</div>"
+        month_str += "</div>"
         return month_str

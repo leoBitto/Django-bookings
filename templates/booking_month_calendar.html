@@ -1,29 +1,28 @@
-<!-- Nel template booking_month_calendar.html -->
-
 {% extends 'website\base.html' %}
 
 {% block content %}
+<div class="m-2">
   <h2>Calendario del Mese</h2>
   {{ calendar|safe }}
 
   <!-- Pulsante per aprire il modal di aggiunta -->
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addBookingModal">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
     Aggiungi Prenotazione
   </button>
 
   <!-- Modal di aggiunta -->
-  <div class="modal fade" id="addBookingModal" tabindex="-1" role="dialog" aria-labelledby="addBookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+  <div class="modal fade" id="addBookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="addBookingModalLabel">Aggiungi Prenotazione</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+          <h5 class="modal-title">Aggiungi Prenotazione</h5>
+          <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
+            <i class="fa-solid fa-x"></i>
           </button>
         </div>
         <div class="modal-body">
           <h2>Crea Prenotazione</h2>
-          <form method="post" action="{% url 'create_booking' %}">
+          <form method="post" action="{% url 'bookings:booking_create' %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Salva</button>
@@ -36,29 +35,30 @@
   <!-- Aggiungi questo codice per visualizzare i pulsanti di aggiornamento e cancellazione per ogni prenotazione -->
   {% for booking in bookings %}
     <div class="booking-container">
-      <p>{{ booking.nome_cliente }} - {{ booking.data_prenotazione }} alle {{ booking.ora_prenotazione }}</p>
-      <button type="button" class="btn btn-info" data-toggle="modal" data-target="#updateBookingModal{{ booking.pk }}">
+      <p>{{ booking.name }} - {{ booking.date }} alle {{ booking.hour }}</p>
+      <p class="fs-6">{{ booking.note }}</p>
+      <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#updateBookingModal{{ booking.id }}">
         Modifica
       </button>
-      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteBookingModal{{ booking.pk }}">
+      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBookingModal{{ booking.id }}">
         Cancella
       </button>
 
       <!-- Modal di aggiornamento -->
-      <div class="modal fade" id="updateBookingModal{{ booking.pk }}" tabindex="-1" role="dialog" aria-labelledby="updateBookingModalLabel{{ booking.pk }}" aria-hidden="true">
+      <div class="modal fade" id="updateBookingModal{{ booking.id }}" tabindex="-1" role="dialog" aria-labelledby="updateBookingModalLabel{{ booking.id }}" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="updateBookingModalLabel{{ booking.pk }}">Modifica Prenotazione</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+              <h5 class="modal-title" id="updateBookingModalLabel{{ booking.id }}">Modifica Prenotazione</h5>
+              <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
+                <i class="fa-solid fa-x"></i>
               </button>
             </div>
             <div class="modal-body">
               <h2>Modifica Prenotazione</h2>
-              <form method="post" action="{% url 'booking_update' %}">
+              <form method="post" action="{% url 'bookings:booking_update' pk=booking.id %}">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {{ booking.form.as_p }}
                 <button type="submit" class="btn btn-primary">Salva</button>
               </form>
             </div>
@@ -67,18 +67,18 @@
       </div>
 
       <!-- Modal di cancellazione -->
-      <div class="modal fade" id="deleteBookingModal{{ booking.pk }}" tabindex="-1" role="dialog" aria-labelledby="deleteBookingModalLabel{{ booking.pk }}" aria-hidden="true">
+      <div class="modal fade" id="deleteBookingModal{{ booking.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteBookingModalLabel{{ booking.id }}" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="deleteBookingModalLabel{{ booking.pk }}">Cancella Prenotazione</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+              <h5 class="modal-title" id="deleteBookingModalLabel{{ booking.id }}">Cancella Prenotazione</h5>
+              <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Close">
+                <i class="fa-solid fa-x"></i>
               </button>
             </div>
             <div class="modal-body">
               <p>Sei sicuro di voler cancellare la prenotazione di {{ booking.nome_cliente }}?</p>
-              <form method="post" action="{% url 'booking_delete' pk=booking.pk %}">
+              <form method="post" action="{% url 'bookings:booking_delete' pk=booking.id %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">Conferma Cancellazione</button>
               </form>
@@ -88,4 +88,5 @@
       </div>
     </div>
   {% endfor %}
+</div>
 {% endblock %}

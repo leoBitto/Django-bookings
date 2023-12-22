@@ -14,8 +14,13 @@ class BookingForm(forms.ModelForm):
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
-        if not (1000000000 <= phone_number <= 9999999999):
-            raise forms.ValidationError("Il numero di telefono deve essere compreso tra 1000000000 e 9999999999.")
+        try:
+            phone_number = int(phone_number)
+            if not (1000000000 <= phone_number <= 9999999999):
+                raise forms.ValidationError("Il numero di telefono deve essere compreso tra 1000000000 e 9999999999.")
+        except ValueError:
+            raise forms.ValidationError("Il numero di telefono deve essere un valore numerico.")
+
         return phone_number
 
     widgets = {
